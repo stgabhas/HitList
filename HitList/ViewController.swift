@@ -69,6 +69,27 @@ class ViewController: UIViewController, UITableViewDataSource {
         people.append(person)
     }
     
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        //1
+        let appDelegate = UIApplication.sharedApplication().delegate as AppDelegate
+        
+        let managedContext = appDelegate.managedObjectContext!
+        
+        //2
+        let fetchRequest = NSFetchRequest(entityName:"Person")
+        
+        //3
+        var error: NSError?
+        
+        let fetchedResults = managedContext.executeFetchRequest(fetchRequest, error: &error) as [NSManagedObject]?
+        
+        if let results = fetchedResults {
+            people = results
+        } else {
+            println("Could not fetch \(error), \(error!.userInfo)")
+        }
+    }
 
             
     override func viewDidLoad() {
@@ -88,6 +109,23 @@ class ViewController: UIViewController, UITableViewDataSource {
         cell.textLabel!.text = person.valueForKey("name") as String?
         
         return cell
+    }
+    
+    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+        return true
+    }
+    
+    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+        if(editingStyle == .Delete) {
+            // Find the object the user is tyring to delete
+            let logItemToDelete = people[indexPath.row]
+            
+            // Delete it from the managedObjectContext
+            people.removeAtIndex(indexPath.row)
+            
+            // Tell the table view to animate out that row
+            tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+        }
     }
 
     override func didReceiveMemoryWarning() {
